@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         屏蔽B站视频
+// @name         B站标题关键词过滤器
 // @version      1.0
 // @author       jarvis
 // @description  根据关键词屏蔽b站首页或视频页的封面及标题
