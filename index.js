@@ -1,15 +1,14 @@
 // ==UserScript==
 // @name         B站标题关键词过滤器
 // @version      1.0
-// @author       jarvis
+// @author       saxozhao
 // @description  根据关键词屏蔽b站首页或视频页的封面及标题
-// @match        *://*.bilibili.com/
+// @match        *://*.bilibili.com/*
 // @grant        none
 // ==/UserScript==
 
 (function() {
     'use strict';
-
 
     // 主页插入<li>元素
     var liElement = document.createElement('li');
@@ -37,7 +36,7 @@
 
         // 创建弹窗
         var popup = document.createElement('div');
-        popup.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; z-index: 1011; border-radius: 20px; width: 800px; height: 500px; overflow-y: auto;';
+        popup.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; z-index: 1011; border-radius: 20px; width: 800px; height: 500px;';
 
         // 创建标题
         var title = document.createElement('h1');
@@ -100,8 +99,6 @@
         headerdiv.appendChild(recordButton);
         popup.appendChild(headerdiv);
 
-
-
         //添加显示已经记录的屏蔽词
         var showaskedords = document.createElement('p');
         showaskedords.style.cssText = 'margin: 20px 0; font-size: 20px;';
@@ -113,11 +110,9 @@
         showaskedords.appendChild(showaskedordsspan);
         popup.appendChild(showaskedords);
 
-
         // 将显示屏蔽词的区域添加到页面
         pbcdiv.style.cssText = 'width: 100%; height: 220px; overflow: auto;';
         popup.appendChild(pbcdiv);
-
 
         // 创建底部  确认与关闭按钮  确认立即执行，关闭等待页面变化执行
         var bottomDiv= document.createElement('div');
@@ -229,48 +224,28 @@
     }
 
 
-    function getFeedCardNodes() {
-        // 使用 document.querySelectorAll 选择所有具有类名 .feed-card 的节点
-        var feedCardNodes = document.querySelectorAll('.feed-card');
+    function getFeedCardNodes(string) {
+
+       // 使用 document.querySelectorAll 选择所有具有类名 .feed-card 或 .bili-video-card 的节点
+        var cardNodes = document.querySelectorAll(string);
 
         // 将匹配的节点转换为数组，以便进行进一步操作
-        var feedCardArray = Array.from(feedCardNodes);
+        var cardArray = Array.from(cardNodes);
 
-        // 返回包含所有匹配节点的数组
-        // console.log('匹配的 .feed-card 节点数量:', feedCardArray.length);
-
-        // 用来存储 class 名为 bili-video-card__info--tit 的内容
-        var titles = [];
-        // 用来存储包含屏蔽词的节点
-        var filteredNodes = [];
-
-
-        // 遍历每个 .feed-card 元素，获取其中 class 名为 bili-video-card__info--tit 的内容
-        feedCardArray.forEach(function(feedCard) {
-            var titleElement = feedCard.querySelector('.bili-video-card__info--tit');
-            if (titleElement) {
-                var titleText = titleElement.textContent;
-                titles.push(titleText);
-
-                // 在这里检查标题是否包含屏蔽词
-                if (containsBlockedWord(titleText)) {
-                    filteredNodes.push(feedCard);
-                }
+        // 检查标题是否包含屏蔽词并隐藏匹配的节点
+        cardArray.forEach(function(card) {
+            console.log(card.innerText)
+            if (containsBlockedWord(card.innerText)) {
+                card.style.visibility = 'hidden';
             }
         });
-
-        // 遍历包含屏蔽词的节点数组，并将它们隐藏
-        filteredNodes.forEach(function(node) {
-            node.style.visibility = 'hidden';
-        });
-
-        return feedCardArray;
+        //返回给观察器
+        return cardArray;
     }
 
 
     // 检查标题是否包含屏蔽词的函数
     function containsBlockedWord(title) {
-        // 假设 pbc 是包含屏蔽词的数据，例如：pbc = [{name: '屏蔽词1'}, {name: '屏蔽词2'}, ...]
         // 在这里检查标题是否包含屏蔽词
         for (var i = 0; i < pbc.length; i++) {
             var blockedWord = pbc[i].name;
@@ -283,8 +258,10 @@
 
     // 创建一个 MutationObserver 实例，配置要观察的变化类型
     var observer = new MutationObserver(function(mutationsList, observer) {
-        getFeedCardNodes()
+        //
+        getFeedCardNodes('.feed-card, .bili-video-card,.bili-rank-list-video__item')
     });
+
     // 启动观察器并传入要观察的 DOM 元素和配置
     observer.observe(document.body, { childList: true, subtree: true });
     // 开始执行
